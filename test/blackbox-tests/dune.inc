@@ -248,6 +248,14 @@
    (progn (run %{exe:cram.exe} -test run.t) (diff? run.t run.t.corrected)))))
 
 (alias
+ (name formatting)
+ (deps (package dune) (source_tree test-cases/formatting))
+ (action
+  (chdir
+   test-cases/formatting
+   (progn (run %{exe:cram.exe} -test run.t) (diff? run.t run.t.corrected)))))
+
+(alias
  (name gen-opam-install-file)
  (deps (package dune) (source_tree test-cases/gen-opam-install-file))
  (action
@@ -973,6 +981,7 @@
   (alias findlib-error)
   (alias fmt)
   (alias force-test)
+  (alias formatting)
   (alias gen-opam-install-file)
   (alias github1019)
   (alias github1099)
@@ -1089,6 +1098,7 @@
   (alias findlib-error)
   (alias fmt)
   (alias force-test)
+  (alias formatting)
   (alias github1019)
   (alias github1099)
   (alias github1231)

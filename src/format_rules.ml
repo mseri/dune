@@ -34,39 +34,41 @@ let gen_rules sctx (config : Dune_file.Auto_format.t) ~dir =
   let resolve_program = Super_context.resolve_program sctx ~loc:(Some loc) in
   let subdir = ".formatted" in
   let output_dir = Path.relative dir subdir in
-  Path.Set.iter files ~f:(fun file ->
-    let input_basename = Path.basename file in
-    let input = Path.relative dir input_basename in
-    let output = Path.relative output_dir input_basename in
+  Super_context.on_load_dir sctx ~dir ~f:(fun () ->
+    Path.Set.iter files ~f:(fun file ->
+      let input_basename = Path.basename file in
+      let input = Path.relative dir input_basename in
+      let output = Path.relative output_dir input_basename in
 
-    let ocaml kind =
-      if config_includes config Ocaml then
-        let exe = resolve_program "ocamlformat" in
-        let args =
-          let open Arg_spec in
-          [ A (flag_of_kind kind)
-          ; Dep input
-          ; A "-o"
-          ; Target output
-          ]
-        in
-        Some (Build.run ~dir exe args)
-      else
-        None
-    in
+      let ocaml kind =
+        if config_includes config Ocaml then
+          let exe = resolve_program "ocamlformat" in
+          let args =
+            let open Arg_spec in
+            [ A (flag_of_kind kind)
+            ; Dep input
+            ; A "-o"
+            ; Target output
+            ]
+          in
+          Some (Build.run ~dir exe args)
+        else
+          None
+      in
 
-    let formatter =
-      match Path.extension file with
-      | ".ml" -> ocaml Impl
-      | ".mli" -> ocaml Intf
-      | ".re"
-      | ".rei" when config_includes config Reason ->
-        let exe = resolve_program "refmt" in
-        let args = [Arg_spec.Dep input] in
-        Some (Build.run ~dir ~stdout_to:output exe args)
-      | _ -> None
-    in
+      let formatter =
+        match Path.extension file with
+        | ".ml" -> ocaml Impl
+        | ".mli" -> ocaml Intf
+        | ".re"
+        | ".rei" when config_includes config Reason ->
+          let exe = resolve_program "refmt" in
+          let args = [Arg_spec.Dep input] in
+          Some (Build.run ~dir ~stdout_to:output exe args)
+        | _ -> None
+      in
 
-    Option.iter formatter ~f:(fun arr ->
-      Super_context.add_rule sctx ~mode:Standard ~loc arr;
-      add_diff sctx loc ~dir input output))
+      Option.iter formatter ~f:(fun arr ->
+        Super_context.add_rule sctx ~mode:Standard ~loc arr;
+        add_diff sctx loc ~dir input output))
+  )
